@@ -34,7 +34,7 @@
     {
       max-width: 1100px;
       margin: 20px auto 30px auto;
-      background: white;
+      background: #ffffff;
       padding: 20px 25px 25px 25px;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
@@ -54,118 +54,18 @@
       margin-top: 0;
     }
 
-    .layout
+    .window-wrapper
     {
-      display: flex;
-      gap: 20px;
       margin-top: 15px;
-      min-height: 400px;
     }
 
-    .sidebar
+    .window-frame
     {
-      flex: 0 0 30%;
-      border-right: 1px solid #ddd;
-      padding-right: 10px;
-      overflow-y: auto;
-      max-height: 600px;
-    }
-
-    .content
-    {
-      flex: 1;
-      padding-left: 10px;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      max-height: 600px;
-    }
-
-    .tree
-    {
-      font-family: Consolas, "Courier New", monospace;
-      font-size: 0.9rem;
-    }
-
-    .tree ul
-    {
-      list-style: none;
-      margin: 0;
-      padding-left: 18px;
-    }
-
-    .tree li
-    {
-      margin: 2px 0;
-    }
-
-    .folder-label
-    {
-      cursor: pointer;
-      font-weight: bold;
-      color: #005b5e;
-    }
-
-    .folder-label::before
-    {
-      content: "▸ ";
-      font-size: 0.8rem;
-    }
-
-    .folder-label.open::before
-    {
-      content: "▾ ";
-    }
-
-    .folder-label::after
-    {
-      content: " 📁";
-      font-weight: normal;
-    }
-
-    .file-link
-    {
-      text-decoration: none;
-      color: #333;
-      cursor: pointer;
-    }
-
-    .file-link:hover
-    {
-      text-decoration: underline;
-    }
-
-    .file-link::before
-    {
-      content: "📄 ";
-    }
-
-    .file-link.active
-    {
-      background: #e0f0f1;
-    }
-
-    #file-info
-    {
-      font-size: 0.9rem;
-      color: #444;
-      margin-bottom: 6px;
-      word-break: break-all;
-    }
-
-    #file-content
-    {
-      flex: 1;
-      margin: 0;
-      padding: 10px;
+      width: 100%;
+      height: 600px;
       border: 1px solid #ddd;
       border-radius: 4px;
-      background: #fafafa;
-      font-family: Consolas, "Courier New", monospace;
-      font-size: 0.9rem;
-      line-height: 1.4;
-      overflow: auto;
-      white-space: pre;
+      background: #ffffff;
     }
 
     .small-note
@@ -183,29 +83,6 @@
       font-size: 0.85rem;
       color: #666;
     }
-
-    @media (max-width: 800px)
-    {
-      .layout
-      {
-        flex-direction: column;
-      }
-
-      .sidebar
-      {
-        flex-basis: auto;
-        border-right: none;
-        border-bottom: 1px solid #ddd;
-        padding-right: 0;
-        padding-bottom: 10px;
-        max-height: 250px;
-      }
-
-      .content
-      {
-        max-height: 350px;
-      }
-    }
   </style>
 </head>
 
@@ -216,215 +93,30 @@
   </header>
 
   <div class="container">
-    <h2>Repository Browser</h2>
+    <h2>Files and Folders</h2>
     <p>
-      Browse the folders and files used in CF1.  
-      Select a file on the left to view its contents on the right.
+      Use the window below to browse the files and folders used in CF1.  
+      This view is served from the CF1_Examples site, but stays inside Moodle.
     </p>
 
-    <div class="layout">
-      <aside class="sidebar">
-        <div class="tree" id="repo-tree">
-          Loading contents…
-        </div>
-      </aside>
-
-      <section class="content">
-        <div id="file-info">
-          Select a file from the list to view it here.
-        </div>
-        <pre id="file-content"></pre>
-        <div class="small-note">
-          Text and code files are shown directly here.  
-          Binary files (e.g. images, PDFs) will download or open in the browser if clicked.
-        </div>
-      </section>
+    <div class="window-wrapper">
+      <!-- This is the "window" into your GitHub Pages folder -->
+      <iframe 
+        src="Various/" 
+        class="window-frame"
+        title="CF1_Examples file browser">
+      </iframe>
     </div>
+
+    <p class="small-note">
+      Clicking on a file will open it inside this window (for example, PDFs)  
+      or download it in your browser, depending on the file type and settings.
+    </p>
   </div>
 
   <footer>
-    CF1_Examples • Served via GitHub Pages • Embedded in Moodle
+    CF1_Examples • GitHub Pages
   </footer>
-
-  <script>
-    // Basic settings for your repo
-    const owner  = "mikeduignan";
-    const repo   = "CF1_Examples";
-    const branch = "main";
-
-    const apiBase     = `https://api.github.com/repos/${owner}/${repo}/contents`;
-    const rawBase     = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}`;
-    const treeRoot    = document.getElementById("repo-tree");
-    const fileInfoEl  = document.getElementById("file-info");
-    const fileContent = document.getElementById("file-content");
-
-    let activeLink = null;
-
-    async function fetchDirectory(path = "")
-    {
-      const url = path
-        ? `${apiBase}/${encodeURIComponent(path)}?ref=${branch}`
-        : `${apiBase}?ref=${branch}`;
-
-      const response = await fetch(url);
-
-      if (!response.ok)
-      {
-        throw new Error(`Failed to load ${path || "root"}: ${response.status}`);
-      }
-
-      return response.json();
-    }
-
-    async function loadFile(path)
-    {
-      if (!path)
-      {
-        return;
-      }
-
-      // Visually indicate loading
-      fileInfoEl.textContent = `Loading: ${path} …`;
-      fileContent.textContent = "";
-
-      const rawUrl = `${rawBase}/${path}`;
-
-      try
-      {
-        const response = await fetch(rawUrl);
-
-        if (!response.ok)
-        {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const text = await response.text();
-        fileInfoEl.textContent = path;
-        fileContent.textContent = text;
-      }
-      catch (err)
-      {
-        fileInfoEl.textContent = `Could not load file: ${path}`;
-        fileContent.textContent = `Error: ${err.message}`;
-      }
-    }
-
-    function buildList(items, parentPath = "")
-    {
-      // Hide index.html at root so students never see it
-      items = items.filter(function (item)
-      {
-        const isRootIndex = (item.type === "file" &&
-                             item.name === "index.html" &&
-                             !parentPath);
-        return !isRootIndex;
-      });
-
-      // Sort: directories first, then files
-      items.sort(function (a, b)
-      {
-        if (a.type === b.type)
-        {
-          return a.name.localeCompare(b.name);
-        }
-        return a.type === "dir" ? -1 : 1;
-      });
-
-      const ul = document.createElement("ul");
-
-      items.forEach(function (item)
-      {
-        const li = document.createElement("li");
-
-        if (item.type === "dir")
-        {
-          const label = document.createElement("span");
-          label.textContent = item.name;
-          label.className = "folder-label";
-
-          const childContainer = document.createElement("div");
-          childContainer.style.display = "none";
-
-          label.addEventListener("click", async function ()
-          {
-            const isOpen = childContainer.style.display === "block";
-
-            if (isOpen)
-            {
-              childContainer.style.display = "none";
-              label.classList.remove("open");
-              return;
-            }
-
-            if (!childContainer.dataset.loaded)
-            {
-              try
-              {
-                const contents  = await fetchDirectory(item.path);
-                const childList = buildList(contents, item.path);
-                childContainer.appendChild(childList);
-                childContainer.dataset.loaded = "true";
-              }
-              catch (err)
-              {
-                childContainer.textContent = "Error loading folder: " + err.message;
-              }
-            }
-
-            childContainer.style.display = "block";
-            label.classList.add("open");
-          });
-
-          li.appendChild(label);
-          li.appendChild(childContainer);
-        }
-        else if (item.type === "file")
-        {
-          const link = document.createElement("a");
-          link.textContent = item.name;
-          link.className = "file-link";
-
-          // Clicking loads the file content into the right-hand pane
-          link.addEventListener("click", function (ev)
-          {
-            ev.preventDefault();
-
-            if (activeLink)
-            {
-              activeLink.classList.remove("active");
-            }
-            link.classList.add("active");
-            activeLink = link;
-
-            loadFile(item.path);
-          });
-
-          li.appendChild(link);
-        }
-
-        ul.appendChild(li);
-      });
-
-      return ul;
-    }
-
-    async function initTree()
-    {
-      try
-      {
-        const rootItems = await fetchDirectory("");
-        treeRoot.innerHTML = "";
-        const list = buildList(rootItems, "");
-        treeRoot.appendChild(list);
-      }
-      catch (err)
-      {
-        treeRoot.textContent = "Error loading repository contents: " + err.message;
-      }
-    }
-
-    initTree();
-  </script>
 
 </body>
 </html>
