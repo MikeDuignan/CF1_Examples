@@ -1,3 +1,5 @@
-# CF1_Examples
+# CF1 Examples
+Welcome to the code examples for CF1.
 
-This is another line
+- [Example 1](example1/)
+- [Example 2](example2/)
