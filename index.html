@@ -32,7 +32,7 @@
 
     .container
     {
-      max-width: 900px;
+      max-width: 1000px;
       margin: 30px auto;
       background: white;
       padding: 25px;
@@ -53,68 +53,73 @@
       line-height: 1.5;
     }
 
-    .folder-list 
+    .tree
     {
       margin-top: 20px;
-      padding-left: 0;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.95rem;
+    }
+
+    .tree ul
+    {
       list-style: none;
+      margin: 0;
+      padding-left: 20px;
     }
 
-    .folder-list li 
+    .tree li
     {
-      margin: 8px 0;
+      margin: 4px 0;
     }
 
-    .folder-list a
+    .folder-label
     {
-      color: #005b5e;
+      cursor: pointer;
       font-weight: bold;
-      text-decoration: none;
+      color: #005b5e;
     }
 
-    .folder-list a:hover
+    .folder-label::before
+    {
+      content: "▸ ";
+      font-size: 0.85rem;
+    }
+
+    .folder-label.open::before
+    {
+      content: "▾ ";
+    }
+
+    .file-link
+    {
+      text-decoration: none;
+      color: #333;
+    }
+
+    .file-link:hover
     {
       text-decoration: underline;
     }
 
-    footer
+    .file-link::before
     {
-      margin-top: 40px;
-      padding: 15px;
-      text-align: center;
-      font-size: 0.9rem;
+      content: "📄 ";
+    }
+
+    .folder-label::after
+    {
+      content: "📁";
+      margin-left: 4px;
+      font-size: 0.95rem;
+    }
+
+    .small-note
+    {
+      margin-top: 15px;
+      font-size: 0.85rem;
       color: #666;
     }
-  </style>
-</head>
 
-<body>
-
-  <header>
-    <h1>CF1 Code Examples</h1>
-  </header>
-
-  <div class="container">
-    <h2>Welcome</h2>
-    <p>
-      This site contains example code, notes, and supporting files for the CF1 module.  
-      Choose the folder below to view the material.
-    </p>
-
-    <h2>Available Folder</h2>
-
-    <ul class="folder-list">
-      <li><a href="Various/">📁 Various</a></li>
-    </ul>
-
-    <p>
-      If you add new folders later, simply add additional list items here.
-    </p>
-  </div>
-
-  <footer>
-    CF1_Examples • GitHub Pages
-  </footer>
-
-</body>
-</html>
+    footer
+    {
+      margin-top: 30p
