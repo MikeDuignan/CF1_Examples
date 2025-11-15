@@ -122,4 +122,164 @@
 
     footer
     {
-      margin-top: 30p
+      margin-top: 30px;
+      padding: 15px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #666;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>CF1 Code Examples</h1>
+  </header>
+
+  <div class="container">
+    <h2>Welcome</h2>
+    <p>
+      This site lists the folders and files in the CF1_Examples repository.  
+      Click a folder to expand it, and click a file to open it in a new tab.
+    </p>
+
+    <div class="tree" id="repo-tree">
+      Loading contents…
+    </div>
+
+    <p class="small-note">
+      This view is generated automatically from the GitHub repository structure (branch: <code>main</code>).
+      If you add new folders or files (for example, inside <code>Various/</code>), they will appear here after you push.
+    </p>
+  </div>
+
+  <footer>
+    CF1_Examples • GitHub Pages
+  </footer>
+
+  <script>
+    // Basic settings for your repo
+    const owner  = "mikeduignan";
+    const repo   = "CF1_Examples";
+    const branch = "main";
+
+    const apiBase = `https://api.github.com/repos/${owner}/${repo}/contents`;
+    const treeRoot = document.getElementById("repo-tree");
+
+    async function fetchDirectory(path = "")
+    {
+      const url = path ? `${apiBase}/${encodeURIComponent(path)}?ref=${branch}`
+                       : `${apiBase}?ref=${branch}`;
+
+      const response = await fetch(url);
+
+      if (!response.ok)
+      {
+        throw new Error(`Failed to load ${path || "root"}: ${response.status}`);
+      }
+
+      return response.json();
+    }
+
+    function buildList(items, parentPath = "")
+    {
+      // Sort: directories first, then files
+      items.sort((a, b) =>
+      {
+        if (a.type === b.type)
+        {
+          return a.name.localeCompare(b.name);
+        }
+        return a.type === "dir" ? -1 : 1;
+      });
+
+      const ul = document.createElement("ul");
+
+      for (const item of items)
+      {
+        const li = document.createElement("li");
+
+        if (item.type === "dir")
+        {
+          const label = document.createElement("span");
+          label.textContent = item.name;
+          label.className = "folder-label";
+
+          const childContainer = document.createElement("div");
+          childContainer.style.display = "none";
+
+          label.addEventListener("click", async () =>
+          {
+            const isOpen = childContainer.style.display === "block";
+
+            if (isOpen)
+            {
+              childContainer.style.display = "none";
+              label.classList.remove("open");
+              return;
+            }
+
+            // Load folder contents on first open
+            if (!childContainer.dataset.loaded)
+            {
+              try
+              {
+                const contents = await fetchDirectory(item.path);
+                const childList = buildList(contents, item.path);
+                childContainer.appendChild(childList);
+                childContainer.dataset.loaded = "true";
+              }
+              catch (err)
+              {
+                childContainer.textContent = `Error loading folder: ${err.message}`;
+              }
+            }
+
+            childContainer.style.display = "block";
+            label.classList.add("open");
+          });
+
+          li.appendChild(label);
+          li.appendChild(childContainer);
+        }
+        else if (item.type === "file")
+        {
+          const link = document.createElement("a");
+          link.textContent = item.name;
+          link.className = "file-link";
+
+          // Link to the file via GitHub Pages path relative to root
+          link.href = item.path;
+          link.target = "_blank";
+          link.rel = "noopener";
+
+          li.appendChild(link);
+        }
+
+        ul.appendChild(li);
+      }
+
+      return ul;
+    }
+
+    async function initTree()
+    {
+      try
+      {
+        const rootItems = await fetchDirectory("");
+        treeRoot.innerHTML = "";
+        const list = buildList(rootItems, "");
+        treeRoot.appendChild(list);
+      }
+      catch (err)
+      {
+        treeRoot.textContent = `Error loading repository contents: ${err.message}`;
+      }
+    }
+
+    initTree();
+  </script>
+
+</body>
+</html>
